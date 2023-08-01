@@ -1,3 +1,4 @@
+# IMPORTS
 import pandas as pd 
 import numpy as np
 import panel as pn
@@ -5,19 +6,25 @@ pn.extension('tabulator')
 
 import hvplot.pandas
 
+# READING FILE
 df = pd.read_csv("/Users/Basilchattha/Downloads/Netflix Userbase.csv")
 
+# MAKING INTERACTIVE DATA FRAME
 idf = df.interactive()
 
+# MAKING INTERACTIVE SLIDER
 Time_Machine = pn.widgets.IntSlider(name='Time Machine', start= 2022, end=2023, step=3, value=2022)
 Time_Machine
 
+# ESTABLISHING Y AXIS
 yaxis_nflx = pn.widgets.RadioButtonGroup(
     name ='Y axis' ,
     options =['User ID'],
     button_type = 'success'
 )
 
+
+# BREAKING DOWM MONTH/DAY/YEAR FORMAT INTO INDIVIDUAL COLUMNS
 print(df.dtypes)
 print(pd.DatetimeIndex(df['Join Date']))
 date_col = pd.DatetimeIndex(df['Join Date'])
@@ -27,6 +34,7 @@ df['Day'] = date_col.day
 
 print(df)
 
+# CONNECTING DATA PIPELINE 
 continents = ['United States', 'Canada', 'Germany', 'Spain', 'Australia', 'United Kingdom']
 
 nflx_pipeline = (
@@ -43,6 +51,7 @@ nflx_pipeline = (
 
 nflx_plot = nflx_pipeline.hvplot(x = 'Year', by='Country', y=yaxis_nflx,line_width=2, title="The Rise and Fall")
 
+# MALE VS FEMALE BAR GRAPH
 male_vs_female_bargraph_pipeline = df[["Gender", "Monthly Revenue"]].groupby("Gender").mean()
 male_vs_female_bargraph = male_vs_female_bargraph_pipeline .hvplot(kind='bar', 
                                                      x='Gender', 
@@ -50,6 +59,7 @@ male_vs_female_bargraph = male_vs_female_bargraph_pipeline .hvplot(kind='bar',
                                                      title='Revenue by Gender')
 male_vs_female_bargraph 
 
+# DASHBOARDING
 # Title and sidebar components
 title = "Project Netflix&Chill"
 sidebar = [
