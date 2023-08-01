@@ -1,1 +1,82 @@
+import pandas as pd 
+import numpy as np
+import panel as pn
+pn.extension('tabulator')
 
+import hvplot.pandas
+
+df = pd.read_csv("/Users/Basilchattha/Downloads/Netflix Userbase.csv")
+
+idf = df.interactive()
+
+Time_Machine = pn.widgets.IntSlider(name='Time Machine', start= 2022, end=2023, step=3, value=2022)
+Time_Machine
+
+yaxis_nflx = pn.widgets.RadioButtonGroup(
+    name ='Y axis' ,
+    options =['User ID'],
+    button_type = 'success'
+)
+
+print(df.dtypes)
+print(pd.DatetimeIndex(df['Join Date']))
+date_col = pd.DatetimeIndex(df['Join Date'])
+df['Year'] = date_col.year
+df['Month'] = date_col.month
+df['Day'] = date_col.day
+
+print(df)
+
+continents = ['United States', 'Canada', 'Germany', 'Spain', 'Australia', 'United Kingdom']
+
+nflx_pipeline = (
+    idf[ 
+        (idf.Year <= Time_Machine) &
+        (idf.Country.isin(continents))
+    ]
+    .groupby(['Country', 'Year'])[yaxis_nflx].mean()
+    .to_frame()
+    .reset_index()
+    .sort_values(by='Year')  
+    .reset_index(drop=True)
+)  
+
+nflx_plot = nflx_pipeline.hvplot(x = 'Year', by='Country', y=yaxis_nflx,line_width=2, title="The Rise and Fall")
+
+male_vs_female_bargraph_pipeline = df[["Gender", "Monthly Revenue"]].groupby("Gender").mean()
+male_vs_female_bargraph = male_vs_female_bargraph_pipeline .hvplot(kind='bar', 
+                                                     x='Gender', 
+                                                     y='Monthly Revenue', 
+                                                     title='Revenue by Gender')
+male_vs_female_bargraph 
+
+# Title and sidebar components
+title = "Project Netflix&Chill"
+sidebar = [
+    pn.pane.Markdown("# What on earth happened to Netflix???"),
+    pn.pane.Markdown("## Settings"),
+    Time_Machine,
+]
+
+# Main layout components
+main = [
+    pn.Row(
+        pn.Column(yaxis_nflx, nflx_plot, margin=(0, 25)),
+    ),
+    pn.Row(
+        pn.Column(male_vs_female_bargraph, margin=(0, 25)),
+        pn.Column(yaxis_nflx),
+    ),
+]
+
+# Template configuration
+template = pn.template.FastListTemplate(
+    title=title,
+    sidebar=sidebar,
+    main=main,
+    accent_base_color="#88d8b0",
+    header_background="#88d8b0",
+)
+
+# Making the dashboard servable
+template.servable()
